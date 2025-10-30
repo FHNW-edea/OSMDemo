@@ -1,19 +1,26 @@
 package ch.fhnw.osmdemo.viewmodel
 
+import io.ktor.utils.io.InternalAPI
+import io.ktor.utils.io.locks.SynchronizedObject
+import io.ktor.utils.io.locks.synchronized
+
+
+@OptIn(InternalAPI::class)
 class LruCache<K, V>(private val maxSize: Int) : MutableMap<K, V> {
     private val cache = LinkedHashMap<K, V>()
 
-    override val size: Int get() = cache.size
-    override val entries: MutableSet<MutableMap.MutableEntry<K, V>> get() = cache.entries
-    override val keys: MutableSet<K> get() = cache.keys
-    override val values: MutableCollection<V> get() = cache.values
+    private val lock = SynchronizedObject()
 
-    override fun get(key: K): V? = cache[key]?.also {
-        cache.remove(key)
-        cache[key] = it
+    override val size: Int get() = synchronized(lock) { cache.size }
+
+    override fun get(key: K): V? = synchronized(lock) {
+        cache[key]?.also {
+            cache.remove(key)
+            cache[key] = it
+        }
     }
 
-    override fun put(key: K, value: V): V? {
+    override fun put(key: K, value: V): V? = synchronized(lock) {
         val previous = cache[key]
         cache.remove(key)
         cache[key] = value
@@ -27,10 +34,24 @@ class LruCache<K, V>(private val maxSize: Int) : MutableMap<K, V> {
         return previous
     }
 
-    override fun clear() = cache.clear()
-    override fun isEmpty() = cache.isEmpty()
-    override fun remove(key: K) = cache.remove(key)
-    override fun putAll(from: Map<out K, V>) = from.forEach { put(it.key, it.value) }
-    override fun containsValue(value: V) = cache.containsValue(value)
-    override fun containsKey(key: K) = cache.containsKey(key)
+    override fun clear()        = synchronized(lock) { cache.clear() }
+    override fun isEmpty()      = synchronized(lock) { cache.isEmpty() }
+    override fun remove(key: K) = synchronized(lock) { cache.remove(key) }
+
+    override fun putAll(from: Map<out K, V>) = synchronized(lock) {
+        from.forEach { put(it.key, it.value) }
+    }
+
+    override fun containsValue(value: V) = synchronized(lock) { cache.containsValue(value) }
+    override fun containsKey(key: K)     = synchronized(lock) { cache.containsKey(key) }
+
+    override val entries: MutableSet<MutableMap.MutableEntry<K, V>>
+        get() = synchronized(lock) { cache.entries.toMutableSet() }
+
+    override val keys: MutableSet<K>
+        get() = synchronized(lock) { cache.keys.toMutableSet() }
+
+    override val values: MutableCollection<V>
+        get() = synchronized(lock) { cache.values.toMutableList() }
+
 }

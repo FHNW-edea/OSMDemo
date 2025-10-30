@@ -75,7 +75,7 @@ class OsmViewModel : ViewModel(){
 
     private var markerCount = 0
 
-    private val tilesCache = LruCache<String, ByteArray>(1000)
+    private val tilesCache = LruCache<String, ByteArray>(2000)
 
     val state = MapState(levelCount  = maxLevel + 1,
                          fullWidth   = mapSize,
