@@ -8,8 +8,6 @@ Many thanks to Pierre Laurence, the originator of this MapCompose.
 
 This project just shows how to display [OpenStreetMap](https://www.openstreetmap.org/)-Tiles in your application and how to deal with markers and callouts.
 
-Known issues: The delivery of tiles seems to slow down when requesting "too-much" tiles. 
-
 
 # Kotlin Multiplatform
 
