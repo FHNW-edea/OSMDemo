@@ -197,21 +197,9 @@ class OsmViewModel : ViewModel(){
                 getByteArrayFromURL(createOSMUrl(row, col, zoomLvl)).asRawSource()
             }
             catch (e: Exception) {
-                    ByteArray(tileSize).asRawSource()  // Return empty but don't cache
+                    ByteArray(tileSize).asRawSource()
                 }
-
-//            val key = getCacheKey(row, col, zoomLvl)
-//            tilesCache[key]?.asRawSource() ?: run {
-//                try {
-//                    val downloadedTile = getByteArrayFromURL(createOSMUrl(row, col, zoomLvl))
-//                    tilesCache[key] = downloadedTile  // Only cache on success
-//                    downloadedTile.asRawSource()
-//                } catch (e: Exception) {
-//                    ByteArray(tileSize).asRawSource()  // Return empty but don't cache
-//                }
-//            }
         }
-
 
     /**
      * wmts level are 0 based. At level 0, the map corresponds to just one
