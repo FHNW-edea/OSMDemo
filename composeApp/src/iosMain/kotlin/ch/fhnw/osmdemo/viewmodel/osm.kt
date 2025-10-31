@@ -1,13 +1,18 @@
 package ch.fhnw.osmdemo.viewmodel
 
+import kotlinx.cinterop.ExperimentalForeignApi
 import io.ktor.client.*
 import io.ktor.client.engine.darwin.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.cache.*
 import platform.Foundation.NSURLRequestReloadIgnoringLocalCacheData
 import platform.Foundation.setHTTPShouldHandleCookies
 import platform.Foundation.setHTTPShouldUsePipelining
 
+@OptIn(ExperimentalForeignApi::class)
 actual fun createHttpClient(): HttpClient = HttpClient(Darwin) {
+    install(HttpCache)  //no file storage is available
+
     engine {
         configureRequest {
             // Set timeouts

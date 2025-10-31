@@ -1,10 +1,23 @@
 package ch.fhnw.osmdemo.viewmodel
 
+import java.io.File
+import ch.fhnw.osmdemo.context
 import io.ktor.client.*
 import io.ktor.client.engine.android.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.cache.*
+import io.ktor.client.plugins.cache.storage.*
 
 actual fun createHttpClient(): HttpClient = HttpClient(Android) {
+    install(HttpCache) {
+        val cacheDir = File(context.cacheDir, "tiles-cache")
+        if (!cacheDir.exists()) {
+            cacheDir.mkdirs()
+        }
+        //Persistent disk cache
+        publicStorage(FileStorage(cacheDir))
+    }
+
     engine {
         // Set connection timeout
         connectTimeout = 30_000 // 30 seconds

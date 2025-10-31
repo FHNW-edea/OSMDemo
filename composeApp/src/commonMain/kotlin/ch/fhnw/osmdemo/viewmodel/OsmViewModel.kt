@@ -60,9 +60,9 @@ class OsmViewModel : ViewModel(){
     private val TAP_TO_DISMISS_ID = "Tap me to dismiss"
     private val markerColor = Color(0xCC2196F3)
 
-    private fun createOSMUrl(row: Int, col: Int, zoomLvl: Int): String = "https://tile.openstreetmap.org/$zoomLvl/$col/$row.png"
+    //private fun createOSMUrl(row: Int, col: Int, zoomLvl: Int): String = "https://tile.openstreetmap.org/$zoomLvl/$col/$row.png"
     //private fun createOSMUrl(row: Int, col: Int, zoomLvl: Int): String = "https://tile.osm.ch/osm-swiss-style/$zoomLvl/$col/$row.png"
-    //private fun createOSMUrl(row: Int, col: Int, zoomLvl: Int): String = "https://tile.osm.ch/switzerland/$zoomLvl/$col/$row.png"
+    private fun createOSMUrl(row: Int, col: Int, zoomLvl: Int): String = "https://tile.osm.ch/switzerland/$zoomLvl/$col/$row.png"
     //private fun createOSMUrl(row: Int, col: Int, zoomLvl: Int): String = "https://b.tile.opentopomap.org/$zoomLvl/$col/$row.png"
 
 
@@ -74,8 +74,6 @@ class OsmViewModel : ViewModel(){
     private val mapSize  = mapSizeAtLevel(wmtsLevel = maxLevel, tileSize = tileSize)
 
     private var markerCount = 0
-
-    private val tilesCache = LruCache<String, ByteArray>(2000)
 
     val state = MapState(levelCount  = maxLevel + 1,
                          fullWidth   = mapSize,
@@ -195,16 +193,23 @@ class OsmViewModel : ViewModel(){
 
     private fun makeOsmTileStreamProvider(): TileStreamProvider =
         TileStreamProvider { row, col, zoomLvl ->
-            val key = getCacheKey(row, col, zoomLvl)
-            tilesCache[key]?.asRawSource() ?: run {
-                try {
-                    val downloadedTile = getByteArrayFromURL(createOSMUrl(row, col, zoomLvl))
-                    tilesCache[key] = downloadedTile  // Only cache on success
-                    downloadedTile.asRawSource()
-                } catch (e: Exception) {
+            try {
+                getByteArrayFromURL(createOSMUrl(row, col, zoomLvl)).asRawSource()
+            }
+            catch (e: Exception) {
                     ByteArray(tileSize).asRawSource()  // Return empty but don't cache
                 }
-            }
+
+//            val key = getCacheKey(row, col, zoomLvl)
+//            tilesCache[key]?.asRawSource() ?: run {
+//                try {
+//                    val downloadedTile = getByteArrayFromURL(createOSMUrl(row, col, zoomLvl))
+//                    tilesCache[key] = downloadedTile  // Only cache on success
+//                    downloadedTile.asRawSource()
+//                } catch (e: Exception) {
+//                    ByteArray(tileSize).asRawSource()  // Return empty but don't cache
+//                }
+//            }
         }
 
 
