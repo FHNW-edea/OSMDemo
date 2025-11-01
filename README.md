@@ -1,4 +1,4 @@
-# OSMDemo based on MapCompose-MP
+# OSMDemo based on MapComposeMP
 
 This project uses and is based on examples from [MapComposeMP](https://github.com/p-lr/MapComposeMP.git).
 
