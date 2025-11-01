@@ -1,6 +1,5 @@
 package ch.fhnw.osmdemo.viewmodel
 
-
 import kotlin.math.pow
 import kotlinx.coroutines.launch
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -17,9 +16,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ch.fhnw.osmdemo.view.Callout
-import io.ktor.client.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.utils.io.*
 import org.jetbrains.compose.resources.painterResource
 import osmdemo.composeapp.generated.resources.Res
@@ -37,7 +33,6 @@ import ovh.plrapps.mapcompose.api.onMarkerClick
 import ovh.plrapps.mapcompose.api.onMarkerLongPress
 import ovh.plrapps.mapcompose.api.onMarkerMove
 import ovh.plrapps.mapcompose.api.onTap
-import ovh.plrapps.mapcompose.api.removeAllMarkers
 import ovh.plrapps.mapcompose.api.removeCallout
 import ovh.plrapps.mapcompose.api.removeMarker
 import ovh.plrapps.mapcompose.api.scale
@@ -49,24 +44,18 @@ import ovh.plrapps.mapcompose.ui.layout.Forced
 import ovh.plrapps.mapcompose.ui.state.MapState
 
 
-expect fun createHttpClient() : HttpClient
-
 /**
- * Shows how to use WMTS tile servers with MapCompose, such as Open Street Map.
+ * Shows how to use WMTS tile servers with MapCompose, such as OpenStreetMap.
  */
 class OsmViewModel : ViewModel(){
-    private val client = createHttpClient()
+    private val tileLoader = CachingOsmTileLoader()
 
-    private val TAP_TO_DISMISS_ID = "Tap me to dismiss"
+    private val tileStreamProvider = TileStreamProvider { row, col, zoomLvl ->
+                                                           tileLoader.loadTile(row, col, zoomLvl).asRawSource()
+                                                        }
+
+    private val tapToDismissId = "Tap me to dismiss"
     private val markerColor = Color(0xCC2196F3)
-
-    //private fun createOSMUrl(row: Int, col: Int, zoomLvl: Int): String = "https://tile.openstreetmap.org/$zoomLvl/$col/$row.png"
-    //private fun createOSMUrl(row: Int, col: Int, zoomLvl: Int): String = "https://tile.osm.ch/osm-swiss-style/$zoomLvl/$col/$row.png"
-    private fun createOSMUrl(row: Int, col: Int, zoomLvl: Int): String = "https://tile.osm.ch/switzerland/$zoomLvl/$col/$row.png"
-    //private fun createOSMUrl(row: Int, col: Int, zoomLvl: Int): String = "https://b.tile.opentopomap.org/$zoomLvl/$col/$row.png"
-
-
-    private val tileStreamProvider = makeOsmTileStreamProvider()
 
     private val maxLevel = 19
     private val minLevel = 4
@@ -86,8 +75,9 @@ class OsmViewModel : ViewModel(){
           onMarkerMove { id, x, y, _, _ ->
               println("move $id $x $y")
           }
+
           /**
-           * On marker click, add a callout. If the id is [TAP_TO_DISMISS_ID], set auto-dismiss
+           * On Marker click, add a callout. If the id is [tapToDismissId], set auto-dismiss
            * to false. For this particular id, we programmatically remove the callout on tap.
            */
           onMarkerClick { id, x, y ->
@@ -96,8 +86,8 @@ class OsmViewModel : ViewModel(){
                          x              = x,
                          y              = y,
                          absoluteOffset = DpOffset(0.dp, (-50).dp),
-                         autoDismiss    = id != TAP_TO_DISMISS_ID,
-                         clickable      = id == TAP_TO_DISMISS_ID) {
+                         autoDismiss    = id != tapToDismissId,
+                         clickable      = id == tapToDismissId) {
 
                   Callout(point         = NormalizedPoint(x, y),
                           title         = id,
@@ -109,10 +99,10 @@ class OsmViewModel : ViewModel(){
 
           /**
            * Register a click listener on callouts. We don't need to remove the other callouts
-           * because they automatically dismiss on touch down.
+           * because they automatically dismiss on tap.
            */
           onCalloutClick { id, _, _ ->
-              if (id == TAP_TO_DISMISS_ID) removeCallout(TAP_TO_DISMISS_ID)
+              if (id == tapToDismissId) removeCallout(tapToDismissId)
           }
 
           onMarkerLongPress { id, x, y ->
@@ -134,9 +124,9 @@ class OsmViewModel : ViewModel(){
     }
 
     init {
-        addMarker("Brugg", FHNW)
+        addMarker("FHNW", FHNW)
         viewModelScope.launch {
-            state.centerOnMarker("Brugg", destScale = 0.1)
+            state.centerOnMarker("FHNW", destScale = 0.1)
         }
     }
 
@@ -165,22 +155,13 @@ class OsmViewModel : ViewModel(){
         }
     }
 
-    fun clearMarkers(){
-        state.removeAllMarkers()
-        markerCount = 0
-    }
-
-    fun removeMarker(id: String){
-        state.removeMarker(id)
-        markerCount--
-    }
-
     fun zoomIn() =
         viewModelScope.launch {
             state.scrollTo(x             = state.centroidX,
                            y             = state.centroidY,
                            destScale     = state.scale * 1.5f,
-                           animationSpec = TweenSpec(800, easing = FastOutSlowInEasing))
+                           animationSpec = TweenSpec(durationMillis = 400,
+                                                     easing         = FastOutSlowInEasing))
     }
 
     fun zoomOut() =
@@ -188,31 +169,16 @@ class OsmViewModel : ViewModel(){
             state.scrollTo(x             = state.centroidX,
                            y             = state.centroidY,
                            destScale     = state.scale / 1.5f,
-                           animationSpec = TweenSpec(800, easing = FastOutSlowInEasing))
+                           animationSpec = TweenSpec(durationMillis = 400,
+                                                     easing         = FastOutSlowInEasing))
     }
 
-    private fun makeOsmTileStreamProvider(): TileStreamProvider =
-        TileStreamProvider { row, col, zoomLvl ->
-            try {
-                getByteArrayFromURL(createOSMUrl(row, col, zoomLvl)).asRawSource()
-            }
-            catch (e: Exception) {
-                    ByteArray(tileSize).asRawSource()
-                }
-        }
-
     /**
-     * wmts level are 0 based. At level 0, the map corresponds to just one
-     * tile.
+     * WMTS levels are 0-based. At level 0, the map corresponds to just one tile.
      */
     private fun mapSizeAtLevel(wmtsLevel: Int, tileSize: Int): Int = tileSize * 2.0.pow(wmtsLevel).toInt()
 
-    private fun getCacheKey(row: Int, col: Int,  zoom: Int): String = "$zoom/$row/$col"
-
     private fun ByteArray.asRawSource() = ByteReadChannel(this).asSource()
-
-    private suspend fun getByteArrayFromURL(url: String) : ByteArray = client.get(url).bodyAsBytes()
-
 
 }
 

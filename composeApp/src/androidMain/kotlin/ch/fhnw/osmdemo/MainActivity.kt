@@ -6,11 +6,14 @@ import androidx.activity.enableEdgeToEdge
 import android.content.Context
 import android.os.Bundle
 
-lateinit var context: Context
+
+lateinit var appContext: Context
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        context = applicationContext
+        appContext = applicationContext
+
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 

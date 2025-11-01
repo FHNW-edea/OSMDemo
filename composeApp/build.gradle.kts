@@ -43,6 +43,7 @@ kotlin {
             implementation(libs.mapcompose.mp)
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.logging)
+            implementation(libs.okio)
         }
 
         commonTest.dependencies {
@@ -107,7 +108,7 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "ch.fhnw.osmdemo"
+            packageName = "OSMdemo"
             packageVersion = "1.0.0"
         }
     }

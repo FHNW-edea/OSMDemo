@@ -12,6 +12,7 @@ kotlin = "2.2.21"
 kotlinx-coroutines = "1.10.2"
 mapcomposeMp = "0.11.0"
 ktor="3.3.1"
+okio = "3.16.2"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -27,8 +28,9 @@ ktor-client-apache5 = { module = "io.ktor:ktor-client-apache5", version.ref = "k
 ktor-client-android = { module = "io.ktor:ktor-client-android", version.ref = "ktor" }
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
 
-
 mapcompose-mp = { module = "ovh.plrapps:mapcompose-mp", version.ref = "mapcomposeMp" }
+
+okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

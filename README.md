@@ -2,11 +2,13 @@
 
 This project uses and is based on examples from [MapCompose-mp](https://github.com/p-lr/MapComposeMP.git).
 
-MapCompose-mp is a fast, memory efficient compose multiplatform library to display tiled maps with minimal effort. It shows the visible part of a tiled map with support of markers and paths, and various gestures (flinging, dragging, scaling, and rotating). Target platforms are iOS, desktop (Windows, MacOs, Linux), Android, and WebAssembly.
+MapCompose-mp is a fast, memory-efficient compose multiplatform library to display tiled maps with minimal effort. It shows the visible part of a tiled map with support of markers and paths, and various gestures (flinging, dragging, scaling, and rotating). Target platforms are iOS, desktop (Windows, macOS, Linux), Android, and WebAssembly.
 
 Many thanks to Pierre Laurence, the originator of this MapCompose.
 
-This project just shows how to display [OpenStreetMap](https://www.openstreetmap.org/)-Tiles in your application and how to deal with markers and callouts.
+This project shows how to display [OpenStreetMap](https://www.openstreetmap.org/)-Tiles in your application and how to deal with markers and callouts.
+
+It uses a file-system cache for the OSM-tiles.
 
 
 # Kotlin Multiplatform

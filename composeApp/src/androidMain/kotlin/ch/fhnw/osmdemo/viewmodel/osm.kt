@@ -1,23 +1,19 @@
 package ch.fhnw.osmdemo.viewmodel
 
-import java.io.File
-import ch.fhnw.osmdemo.context
+import ch.fhnw.osmdemo.appContext
 import io.ktor.client.*
 import io.ktor.client.engine.android.*
 import io.ktor.client.plugins.*
-import io.ktor.client.plugins.cache.*
-import io.ktor.client.plugins.cache.storage.*
+import okio.Path
+import okio.Path.Companion.toPath
+
+actual fun platformCacheDir(): Path =
+    appContext.cacheDir
+        .resolve("tilecache")
+        .absolutePath
+        .toPath()
 
 actual fun createHttpClient(): HttpClient = HttpClient(Android) {
-    install(HttpCache) {
-        val cacheDir = File(context.cacheDir, "tiles-cache")
-        if (!cacheDir.exists()) {
-            cacheDir.mkdirs()
-        }
-        //Persistent disk cache
-        publicStorage(FileStorage(cacheDir))
-    }
-
     engine {
         // Set connection timeout
         connectTimeout = 30_000 // 30 seconds
@@ -28,9 +24,9 @@ actual fun createHttpClient(): HttpClient = HttpClient(Android) {
 
     // Add timeout plugin for request-level control
     install(HttpTimeout) {
-        requestTimeoutMillis = 2000
-        connectTimeoutMillis = 2000
-        socketTimeoutMillis  = 2000
+        requestTimeoutMillis = 5000
+        connectTimeoutMillis = 5000
+        socketTimeoutMillis  = 5000
     }
 
     // Add default request configuration
@@ -40,5 +36,4 @@ actual fun createHttpClient(): HttpClient = HttpClient(Android) {
         headers.append("Accept", "*/*")
         headers.append("Connection", "keep-alive")
     }
-
 }

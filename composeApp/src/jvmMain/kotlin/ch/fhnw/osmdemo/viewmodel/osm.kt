@@ -1,24 +1,21 @@
 package ch.fhnw.osmdemo.viewmodel
 
-import java.nio.file.Files
-import java.nio.file.Paths
 import io.ktor.client.*
 import io.ktor.client.engine.apache5.*
 import io.ktor.client.plugins.*
-import io.ktor.client.plugins.cache.*
-import io.ktor.client.plugins.cache.storage.*
+import okio.Path
+import okio.Path.Companion.toPath
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager
 import org.apache.hc.core5.util.TimeValue
 
+actual fun platformCacheDir(): Path {
+    val userHome = System.getProperty("user.home")
+
+    return "$userHome/.tilecache".toPath()
+}
+
 actual fun createHttpClient(): HttpClient = HttpClient(Apache5) {
-    install(HttpCache) {
-        // Persistent disk cache
-        val cacheDir = Files.createDirectories(Paths.get("build/tiles-cache")).toFile()
-
-        publicStorage(FileStorage(cacheDir))
-    }
-
-    engine {
+     engine {
         connectTimeout           = 3_000 // 3 seconds
         socketTimeout            = 3_000
         connectionRequestTimeout = 3_000
@@ -37,9 +34,9 @@ actual fun createHttpClient(): HttpClient = HttpClient(Apache5) {
 
     // Add timeout plugin for request-level control
     install(HttpTimeout) {
-        requestTimeoutMillis = 2000
-        connectTimeoutMillis = 2000
-        socketTimeoutMillis  = 2000
+        requestTimeoutMillis = 5000
+        connectTimeoutMillis = 5000
+        socketTimeoutMillis  = 5000
     }
 
     // Add default request configuration

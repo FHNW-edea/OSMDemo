@@ -43,7 +43,7 @@ data class GeoPosition(val longitude: Double, val latitude: Double) {
         val minutes = ((absValue - degree) * 60.0).toInt()
         val seconds = (absValue - degree - minutes / 60.0) * 3600.0
 
-        return "${degree}° ${minutes}′ ${(round(seconds * 10000) / 10000)}″";
+        return "${degree}° ${minutes}′ ${(round(seconds * 10000) / 10000)}″"
     }
 }
 

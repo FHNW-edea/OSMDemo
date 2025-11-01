@@ -4,15 +4,28 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import io.ktor.client.*
 import io.ktor.client.engine.darwin.*
 import io.ktor.client.plugins.*
-import io.ktor.client.plugins.cache.*
+import okio.Path
+import okio.Path.Companion.toPath
+import platform.Foundation.NSCachesDirectory
+import platform.Foundation.NSSearchPathForDirectoriesInDomains
 import platform.Foundation.NSURLRequestReloadIgnoringLocalCacheData
+import platform.Foundation.NSUserDomainMask
 import platform.Foundation.setHTTPShouldHandleCookies
 import platform.Foundation.setHTTPShouldUsePipelining
 
+actual fun platformCacheDir(): Path {
+    val paths = NSSearchPathForDirectoriesInDomains(
+            NSCachesDirectory,
+            NSUserDomainMask,
+            true)
+
+    val cacheDir = paths.first() as String
+
+    return "$cacheDir/tilecache".toPath()
+}
+
 @OptIn(ExperimentalForeignApi::class)
 actual fun createHttpClient(): HttpClient = HttpClient(Darwin) {
-    install(HttpCache)  //no file storage is available
-
     engine {
         configureRequest {
             // Set timeouts
@@ -45,9 +58,9 @@ actual fun createHttpClient(): HttpClient = HttpClient(Darwin) {
 
     // Add timeout plugin for request-level control
     install(HttpTimeout) {
-        requestTimeoutMillis  = 2000
-        connectTimeoutMillis = 2000
-        socketTimeoutMillis  = 2000
+        requestTimeoutMillis = 5000
+        connectTimeoutMillis = 5000
+        socketTimeoutMillis  = 5000
     }
 
     // Add default request configuration
