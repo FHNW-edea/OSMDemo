@@ -10,6 +10,8 @@ This project shows how to display [OpenStreetMap](https://www.openstreetmap.org/
 
 It uses a file-system cache for the OSM-tiles.
 
+![OSMDemo](OSMDemo.png)
+
 
 # Kotlin Multiplatform
 
