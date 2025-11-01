@@ -1,6 +1,6 @@
 # OSMDemo based on MapCompose-MP
 
-This project uses and is based on examples from [MapCompose-mp](https://github.com/p-lr/MapComposeMP.git).
+This project uses and is based on examples from [MapComposeMP](https://github.com/p-lr/MapComposeMP.git).
 
 MapCompose-mp is a fast, memory-efficient compose multiplatform library to display tiled maps with minimal effort. It shows the visible part of a tiled map with support of markers and paths, and various gestures (flinging, dragging, scaling, and rotating). Target platforms are iOS, desktop (Windows, macOS, Linux), Android, and WebAssembly.
 
