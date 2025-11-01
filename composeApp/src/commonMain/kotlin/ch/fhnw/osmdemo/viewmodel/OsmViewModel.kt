@@ -3,6 +3,7 @@ package ch.fhnw.osmdemo.viewmodel
 import kotlin.math.pow
 import kotlinx.coroutines.launch
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.SnapSpec
 import androidx.compose.animation.core.TweenSpec
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -126,7 +127,9 @@ class OsmViewModel : ViewModel(){
     init {
         addMarker("FHNW", FHNW)
         viewModelScope.launch {
-            state.centerOnMarker("FHNW", destScale = 0.1)
+            state.centerOnMarker(id            = "FHNW",
+                                 destScale     = 0.1,
+                                 animationSpec = SnapSpec())
         }
     }
 
