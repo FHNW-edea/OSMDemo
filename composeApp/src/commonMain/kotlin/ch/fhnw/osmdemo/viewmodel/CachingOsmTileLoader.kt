@@ -20,6 +20,8 @@ class CachingOsmTileLoader() {
 
     private val client = createHttpClient()
 
+    private val inMemoryCache = LruCache<String, ByteArray>(1000)
+
     private fun createOSMUrl(row: Int, col: Int, zoomLvl: Int): String = "https://tile.openstreetmap.org/$zoomLvl/$col/$row.png"
     //private fun createOSMUrl(row: Int, col: Int, zoomLvl: Int): String = "https://tile.osm.ch/osm-swiss-style/$zoomLvl/$col/$row.png"
     //private fun createOSMUrl(row: Int, col: Int, zoomLvl: Int): String = "https://tile.osm.ch/switzerland/$zoomLvl/$col/$row.png"
@@ -30,25 +32,32 @@ class CachingOsmTileLoader() {
     suspend fun loadTile(row: Int, col: Int, zoomLvl: Int): ByteArray {
         val path = tilePath(zoomLvl, col, row)
 
-        return if (fs.exists(path)) {
-            readTile(path)
-        } else {
-            val url = createOSMUrl(row, col, zoomLvl)
+        val cacheKey = "$zoomLvl/$col/$row"
+        return when {
+            inMemoryCache.containsKey(cacheKey) -> { inMemoryCache[cacheKey]!! }
+            fs.exists(path)                     -> { val tile = readTile(path)
+                                                     inMemoryCache[cacheKey] = tile
+                                                     tile
+                                                   }
+            else                                -> { val url = createOSMUrl(row, col, zoomLvl)
 
-            try {
-                val response = client.get(url)
-                if (response.status == HttpStatusCode.OK) {
-                    val bytes = response.readRawBytes()
-                    writeTile(path, bytes)
-                    bytes
-                } else {
-                    ByteArray(tileSize)
-                }
-            } catch (_: Exception) {
-                ByteArray(tileSize)
-            }
+                                                     try {
+                                                         val response = client.get(url)
+                                                         if (response.status == HttpStatusCode.OK) {
+                                                             val tile = response.readRawBytes()
+                                                             inMemoryCache[cacheKey] = tile
+                                                             writeTile(path, tile)
+                                                             tile
+                                                         } else {
+                                                             ByteArray(tileSize)
+                                                         }
+                                                     } catch (_: Exception) {
+                                                         ByteArray(tileSize)
+                                                     }
+                                                   }
         }
-    }
+            }
+
 
     private fun readTile(path: Path) = fs.read(path) { readByteArray() }
     private fun writeTile(path: Path, bytes: ByteArray)  = fs.write(path) { write(bytes) }
