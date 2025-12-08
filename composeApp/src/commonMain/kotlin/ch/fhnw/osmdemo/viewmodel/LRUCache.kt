@@ -6,7 +6,7 @@ import io.ktor.utils.io.locks.synchronized
 
 
 @OptIn(InternalAPI::class)
-class LruCache<K, V>(private val maxSize: Int) : MutableMap<K, V> {
+class LRUCache<K, V>(private val maxSize: Int, private val onRemovedFromCache: (K, V) -> Unit = { _, _ -> }) : MutableMap<K, V> {
     private val cache = LinkedHashMap<K, V>()
 
     private val lock = SynchronizedObject()
@@ -28,6 +28,7 @@ class LruCache<K, V>(private val maxSize: Int) : MutableMap<K, V> {
         if (cache.size > maxSize) {
             repeat (cache.size - maxSize){
                 val eldest = cache.keys.first()
+                onRemovedFromCache(eldest, cache[eldest]!!)
                 cache.remove(eldest)
             }
         }

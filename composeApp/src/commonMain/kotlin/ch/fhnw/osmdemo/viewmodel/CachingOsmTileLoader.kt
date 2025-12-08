@@ -20,7 +20,11 @@ class CachingOsmTileLoader() {
 
     private val client = createHttpClient()
 
-    private val inMemoryCache = LruCache<String, ByteArray>(1000)
+    private val inMemoryCache = LRUCache<String, ByteArray>(1000, { k, v ->
+                                                                    val path = tilePath(k)
+                                                                    if(!fs.exists(path)){
+                                                                        writeTile(path = path, bytes = v)
+                                                                    }})
 
     private fun createOSMUrl(row: Int, col: Int, zoomLvl: Int): String = "https://tile.openstreetmap.org/$zoomLvl/$col/$row.png"
     //private fun createOSMUrl(row: Int, col: Int, zoomLvl: Int): String = "https://tile.osm.ch/osm-swiss-style/$zoomLvl/$col/$row.png"
@@ -30,23 +34,20 @@ class CachingOsmTileLoader() {
     private val tileSize = 256
 
     suspend fun loadTile(row: Int, col: Int, zoomLvl: Int): ByteArray {
-        val path = tilePath(zoomLvl, col, row)
-
         val cacheKey = "$zoomLvl/$col/$row"
         return when {
             inMemoryCache.containsKey(cacheKey) -> { inMemoryCache[cacheKey]!! }
-            fs.exists(path)                     -> { val tile = readTile(path)
+
+            tileExists(zoomLvl, col, row)       -> { val tile = readTile(tilePath(zoomLvl, col, row))
                                                      inMemoryCache[cacheKey] = tile
                                                      tile
                                                    }
-            else                                -> { val url = createOSMUrl(row, col, zoomLvl)
 
-                                                     try {
-                                                         val response = client.get(url)
+            else                                -> { try {
+                                                         val response = client.get(createOSMUrl(row, col, zoomLvl))
                                                          if (response.status == HttpStatusCode.OK) {
                                                              val tile = response.readRawBytes()
                                                              inMemoryCache[cacheKey] = tile
-                                                             writeTile(path, tile)
                                                              tile
                                                          } else {
                                                              ByteArray(tileSize)
@@ -59,8 +60,17 @@ class CachingOsmTileLoader() {
             }
 
 
-    private fun readTile(path: Path) = fs.read(path) { readByteArray() }
+    private fun readTile(path: Path)                     = fs.read(path) { readByteArray() }
     private fun writeTile(path: Path, bytes: ByteArray)  = fs.write(path) { write(bytes) }
+
+    private fun tilePath(cacheKey: String) : Path {
+        val parts = cacheKey.split("/")
+        val dir = cacheDir / parts[0] / parts[1]
+        if (!fs.exists(dir)) {
+            fs.createDirectories(dir)
+        }
+        return dir / "${parts[1]}.png"
+    }
 
     private fun tilePath(z: Int, x: Int, y: Int): Path {
         val dir = cacheDir / z.toString() / x.toString()
@@ -68,6 +78,12 @@ class CachingOsmTileLoader() {
             fs.createDirectories(dir)
         }
         return dir / "$y.png"
+    }
+
+    private fun tileExists(z: Int, x: Int, y: Int) : Boolean {
+        val dir = cacheDir / z.toString() / x.toString()
+
+        return fs.exists(dir) && fs.exists(dir / "$y.png" )
     }
 
 }
