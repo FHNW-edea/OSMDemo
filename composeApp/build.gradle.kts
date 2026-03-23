@@ -47,8 +47,6 @@ kotlin {
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.logging)
             implementation(libs.okio)
-            runtimeOnly(libs.slf4j.api)
-            runtimeOnly(libs.slf4j.simple)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -57,6 +55,8 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
             implementation(libs.ktor.client.apache5)
+            runtimeOnly(libs.slf4j.api)
+            runtimeOnly(libs.slf4j.simple)
         }
 
         iosMain.dependencies {
