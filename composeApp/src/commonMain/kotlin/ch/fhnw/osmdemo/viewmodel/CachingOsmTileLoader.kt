@@ -69,7 +69,7 @@ class CachingOsmTileLoader() {
         if (!fs.exists(dir)) {
             fs.createDirectories(dir)
         }
-        return dir / "${parts[1]}.png"
+        return dir / "${parts[2]}.png"
     }
 
     private fun tilePath(z: Int, x: Int, y: Int): Path {
