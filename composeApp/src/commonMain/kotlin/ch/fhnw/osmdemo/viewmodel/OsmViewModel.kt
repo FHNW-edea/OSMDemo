@@ -133,6 +133,10 @@ class OsmViewModel : ViewModel(){
         }
     }
 
+    fun dumpInMemoryCacheToFiles() {
+        tileLoader.dumpInMemoryCacheToFiles()
+    }
+
     fun addMarker(id: String, geoPos : GeoPosition) = addMarker(id, geoPos.asNormalizedWebMercator())
 
     fun addMarker(id: String, point : NormalizedPoint){
@@ -182,6 +186,7 @@ class OsmViewModel : ViewModel(){
     private fun mapSizeAtLevel(wmtsLevel: Int, tileSize: Int): Int = tileSize * 2.0.pow(wmtsLevel).toInt()
 
     private fun ByteArray.asRawSource() = ByteReadChannel(this).asSource()
+
 
 }
 

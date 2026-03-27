@@ -20,11 +20,7 @@ class CachingOsmTileLoader() {
 
     private val client = createHttpClient()
 
-    private val inMemoryCache = LRUCache<String, ByteArray>(1000, { k, v ->
-                                                                    val path = tilePath(k)
-                                                                    if(!fs.exists(path)){
-                                                                        writeTile(path = path, bytes = v)
-                                                                    }})
+    private val inMemoryCache = LRUCache<String, ByteArray>(1000, { k, v -> writeTile(k, v)})
 
     private fun createOSMUrl(row: Int, col: Int, zoomLvl: Int): String = "https://tile.openstreetmap.org/$zoomLvl/$col/$row.png"
     //private fun createOSMUrl(row: Int, col: Int, zoomLvl: Int): String = "https://tile.osm.ch/osm-swiss-style/$zoomLvl/$col/$row.png"
@@ -32,6 +28,17 @@ class CachingOsmTileLoader() {
     //private fun createOSMUrl(row: Int, col: Int, zoomLvl: Int): String = "https://b.tile.opentopomap.org/$zoomLvl/$col/$row.png"
 
     private val tileSize = 256
+
+    fun dumpInMemoryCacheToFiles() {
+        inMemoryCache.forEach { writeTile(it.key, it.value) }
+    }
+
+    private fun writeTile(key : String, value : ByteArray){
+        val path = tilePath(key)
+        if (!fs.exists(path)) {
+            writeTile(path = path, bytes = value)
+        }
+    }
 
     suspend fun loadTile(row: Int, col: Int, zoomLvl: Int): ByteArray {
         val cacheKey = "$zoomLvl/$col/$row"
@@ -85,5 +92,7 @@ class CachingOsmTileLoader() {
 
         return fs.exists(dir) && fs.exists(dir / "$y.png" )
     }
+
+
 
 }

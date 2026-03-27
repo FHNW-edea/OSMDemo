@@ -20,18 +20,23 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LifecycleStartEffect
+import androidx.lifecycle.viewmodel.compose.viewModel
 import ch.fhnw.osmdemo.viewmodel.OsmViewModel
 import ovh.plrapps.mapcompose.ui.MapUI
 import ovh.plrapps.mapcompose.ui.state.MapState
 
 @Composable
 fun App() {
-    val osm = remember { OsmViewModel() }
+    val osm = viewModel<OsmViewModel> { OsmViewModel() }
+
+    LifecycleStartEffect(Unit) {
+        onStopOrDispose { osm.dumpInMemoryCacheToFiles()}
+    }
 
     MaterialTheme {
         Box(modifier = Modifier.windowInsetsPadding(WindowInsets.systemBars)
