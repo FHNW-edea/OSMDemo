@@ -69,6 +69,7 @@ class OsmViewModel : ViewModel(){
                          fullWidth   = mapSize,
                          fullHeight  = mapSize,
                          workerCount = 16) {
+        infiniteScrollX(true)
         minimumScaleMode(Forced(1 / 2.0.pow(maxLevel - minLevel))) }
                              .apply {
           addLayer(tileStreamProvider)
